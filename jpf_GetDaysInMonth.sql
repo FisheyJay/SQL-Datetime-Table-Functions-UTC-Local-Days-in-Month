@@ -1,7 +1,8 @@
 /*
  John Fisher
 
-	Create a Scalar-valued Function, but first, check for the existence of existing functions for the following OBJECT_ID and type
+	Create a Scalar-valued Function that will return the number of days in the month of interest, 
+	but first, check for the existence of existing functions for the following OBJECT_ID and type
 
 	FN = SQL scalar function
 	IF = SQL inline table-valued function
