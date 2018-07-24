@@ -1,0 +1,105 @@
+/*
+Author:			John Fisher
+Date:			07/23/2018
+	
+Description:	Create a User Defined Function to obtain the Local Prevailing Time given the UTC (Coordinated Universal Time).
+				UTC and GMT (Greenwich Mean Time) are not really the same thing although there is no difference in their value.
+				The difference is that GMT is a Time Zone and UTC is a Time Standard. GMT has been superceded by UTC.
+
+Usage:			FisheyJay is the name of my Local SQL Server Database, you'll obviously replace the database name with yours.
+
+				Example:
+
+					USE FisheyJay
+					GO
+
+					SELECT dbo.jpf_GetLocalTimeFromUTC('07/23/2018 23:53:00') AS MyLocalTime
+					GO
+
+				Returns:
+
+					MyLocalTime
+					2018-07-23 19:53:00.000       
+					
+					---> which is correct here in NJ during the summer, it is in fact, plus 4 hours difference (EPT, NY, US East Coast UTC+4h)
+*/
+
+USE FisheyJay
+GO
+
+/* Get rid of the existing jpf_GetLocalTimeFromUTC (soon to be old, outdated one) if it is present */
+IF  EXISTS (SELECT * FROM sys.objects WHERE OBJECT_ID = OBJECT_ID(N'dbo.jpf_GetLocalTimeFromUTC') AND TYPE in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+DROP FUNCTION dbo.jpf_GetLocalTimeFromUTC
+GO
+
+USE FisheyJay
+GO
+
+/* Now, we will create the Object:  UserDefinedFunction dbo.jpf_GetLocalTimeFromUTC    Script Date: 07/23/2018 16:21:05 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE FUNCTION dbo.jpf_GetLocalTimeFromUTC(@DTFROM DATETIME)
+RETURNS DATETIME
+AS
+BEGIN
+DECLARE @LocalTime DATETIME, @Offset INT
+
+SET @LocalTime=@DTFROM
+SET @DTFROM=GETDATE()
+
+DECLARE @Apr VARCHAR(5), @Oct VARCHAR(5), @Spring_date DATETIME, @Fall_date DATETIME, @Mar VARCHAR(5), @Nov VARCHAR(5)
+
+IF YEAR(@DTFROM) <=2006
+BEGIN
+ SET @Apr = (2 + 6 * YEAR(@DTFROM) - (FLOOR(YEAR(@DTFROM) / 4))) % 7 + 1
+ SET @Oct = (31 - ((YEAR(@DTFROM) * 5 / 4) + 1) % 7) 
+ 
+ SET @Spring_date = '4/' + @Apr + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+ SET @Fall_date = '10/' + @Oct + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+END
+ELSE
+BEGIN 
+ SET @Mar = 14 - (FLOOR (1 + YEAR(@DTFROM) * 5 / 4) % 7);
+ SET @Nov = 7 - (FLOOR (1 + YEAR(@DTFROM) * 5 / 4) % 7);
+ 
+ SET @Spring_date = '3/' + @Mar + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+ SET @Fall_date = '11/' + @Nov + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+END
+
+SET @Offset=DATEDIFF(hh, GETUTCDATE(), GETDATE())
+
+IF @DTFROM between @Spring_date and @Fall_date
+  SET @Offset=@Offset-1
+
+SET @DTFROM=@LocalTime
+
+IF YEAR(@DTFROM) <=2006
+BEGIN
+ SET @Apr = (2 + 6 * YEAR(@DTFROM) - (FLOOR(YEAR(@DTFROM) / 4))) % 7 + 1
+ SET @Oct = (31 - ((YEAR(@DTFROM) * 5 / 4) + 1) % 7) 
+ 
+ SET @Spring_date = '4/' + @Apr + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+ SET @Fall_date = '10/' + @Oct + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+END
+ELSE
+BEGIN 
+ SET @Mar = 14 - (FLOOR (1 + YEAR(@DTFROM) * 5 / 4) % 7);
+ SET @Nov = 7 - (FLOOR (1 + YEAR(@DTFROM) * 5 / 4) % 7);
+ 
+ SET @Spring_date = '3/' + @Mar + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+ SET @Fall_date = '11/' + @Nov + '/' + CONVERT(CHAR(4),YEAR(@DTFROM))
+END
+
+IF @DTFROM between @Spring_date and @Fall_date
+	SET @LocalTime=DATEADD(hh,@Offset+1,@LocalTime)
+ELSE
+	SET @LocalTime=DATEADD(hh,@Offset,@LocalTime)
+
+RETURN @LocalTime
+END
+
+GO
