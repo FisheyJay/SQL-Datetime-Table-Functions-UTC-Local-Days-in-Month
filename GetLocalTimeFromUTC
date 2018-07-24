@@ -2,33 +2,37 @@
 Author:			John Fisher
 Date:			07/23/2018
 	
-Description:	Create a User Defined Function to obtain the Local Prevailing Time given the UTC (Coordinated Universal Time).
-				UTC and GMT (Greenwich Mean Time) are not really the same thing although there is no difference in their value.
-				The difference is that GMT is a Time Zone and UTC is a Time Standard. GMT has been superceded by UTC.
+Description:	Create a User Defined Function to obtain the Local <Prevailing> Time given the UTC (Coordinated Universal Time).
+		UTC and GMT (Greenwich Mean Time) are not really the same thing although there is no difference 
+		in their value. The difference is that GMT is a Time Zone and UTC is a Time Standard. 
+		GMT has been superceded by UTC.
 
-Usage:			FisheyJay is the name of my Local SQL Server Database, you'll obviously replace the database name with yours.
+Usage:		FisheyJay is the name of my Local SQL Server Database, you'll obviously replace the database name with yours.
 
-				Example:
+		Example:
 
-					USE FisheyJay
-					GO
+			USE FisheyJay
+			GO
 
-					SELECT dbo.jpf_GetLocalTimeFromUTC('07/23/2018 23:53:00') AS MyLocalTime
-					GO
+			SELECT dbo.jpf_GetLocalTimeFromUTC('07/23/2018 23:53:00') AS MyLocalTime
+			GO
 
-				Returns:
+			Returns:
 
-					MyLocalTime
-					2018-07-23 19:53:00.000       
+			MyLocalTime
+			2018-07-23 19:53:00.000       
 					
-					---> which is correct here in NJ during the summer, it is in fact, plus 4 hours difference (EPT, NY, US East Coast UTC+4h)
+			---> which is correct here in NJ during the summer, it is in fact, 
+			negative (minus) 4 hours difference (EPT, NY, US East Coast UTC-4h)
 */
 
 USE FisheyJay
 GO
 
 /* Get rid of the existing jpf_GetLocalTimeFromUTC (soon to be old, outdated one) if it is present */
-IF  EXISTS (SELECT * FROM sys.objects WHERE OBJECT_ID = OBJECT_ID(N'dbo.jpf_GetLocalTimeFromUTC') AND TYPE in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE OBJECT_ID = OBJECT_ID(N'dbo.jpf_GetLocalTimeFromUTC') 
+AND TYPE in (N'FN', N'IF', N'TF', N'FS', N'FT'))
 DROP FUNCTION dbo.jpf_GetLocalTimeFromUTC
 GO
 
@@ -36,6 +40,7 @@ USE FisheyJay
 GO
 
 /* Now, we will create the Object:  UserDefinedFunction dbo.jpf_GetLocalTimeFromUTC    Script Date: 07/23/2018 16:21:05 ******/
+
 SET ANSI_NULLS ON
 GO
 
